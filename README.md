@@ -228,26 +228,31 @@ Notes:
 ### Connection diagram
 
 ```
-        ESP8266 (NodeMCU 1.0 / ESP-12E)            RS485 auto-direction module           Lingxiao Relaax220-VS
-        +-----------------------------+            +------------------------+             +---------------------+
-        |                             |            |                        |             |   RS485 terminals    |
-        |                         3V3 +----------->+ VCC                    |             |                     |
-        |                         GND +----------->+ GND               A  <-+------------>+ A (Data +)          |
-        |                             |            |                   B  <-+------------>+ B (Data -)          |
-        |     D7 (DI / TX out)  ------+----------->+ DI (driver in)         |             | M16 4-pin port      |
-        |     D6 (RO / RX in)   <-----+------------+ RO (receiver out)  A  <+--YELLOW---->+ Pin 1: RS485 A      |
-        |                             |            |                    B  <+--GREEN----->+ Pin 2: RS485 B      |
-        |     GND               ------+------------+ GND               GND <+--BLACK----->+ Pin 3: GND          |
-        |     5V/VIN (optional) <-----+----------------------------------------RED--------+ Pin 4: +5V (pump)   |
-        +-----------------------------+            +------------------------+             |  (9600 baud, 8N1)   |
-                                                                                          +---------------------+
+        Wemos D1 Mini (ESP8266)             MAX485 auto-direction module              Lingxiao Relaax220-VS
+        +---------------------+             +--------------------------+              +---------------------+
+        |                     |             |  TTL side     RS485 side |              |  M16 4-pin port      |
+        |                 3V3 +------------>+ VCC                      |              |  (male, on pump)    |
+        |                 GND +------------>+ GND                  A+ <+---YELLOW---->+ Pin 1: RS485 A      |
+        |    D7 (TX)      ----+------------>+ TXD                  B- <+---GREEN----->+ Pin 2: RS485 B      |
+        |    D6 (RX)      <---+-------------+ RXD                     |              |                     |
+        |                     |             |                        |              +---------------------+
+        |    5V  <------------+---------------------RED----------------------------->+ Pin 4: +5V (pump)   |
+        |    GND <------------+---------------------BLACK--------------------------->+ Pin 3: GND          |
+        +---------------------+             +--------------------------+              (9600 baud, 8N1)
 
-  Pump connector: M16 4-pin waterproof.
-  Pinout:  Pin 1 = RS485 A (Yellow),  Pin 2 = RS485 B (Green),  Pin 3 = GND (Black),  Pin 4 = +5V (Red).
+  Boards: Wemos D1 Mini (ESP8266, external-antenna "Pro" variant shown) +
+          MAX485 auto-direction TTL<->RS485 module (labels: GND RXD TXD VCC / A+ B-).
+
+  Module TTL side -> Wemos:   VCC=3V3, GND=GND, TXD->D7, RXD->D6.
+  Module RS485 side -> pump:  A+ = Yellow (Pin 1 / A),  B- = Green (Pin 2 / B).
+  Power/ground come straight from the pump's M16 port:  Red = +5V (Pin 4),  Black = GND (Pin 3).
+
+  Pump connector: M16 4-pin waterproof (male on pump).
+  Pinout:  Pin 1 = A (Yellow),  Pin 2 = B (Green),  Pin 3 = GND (Black),  Pin 4 = +5V (Red).
   Notes:
    - Auto-direction module: no DE/RE wiring needed.
-   - Common ground across ESP8266, RS485 module, and pump (Pin 3 / Black).
-   - Optional: power the ESP8266 from Pin 4 (+5V) instead of USB (verify voltage/current first).
+   - Common ground across Wemos, RS485 module, and pump (Pin 3 / Black).
+   - The whole controller is powered from the pump's +5V (Pin 4) - no USB needed in normal use.
    - Keep the A/B pair short/twisted. If no comms, swap A/B (Yellow/Green).
    - On a good link the pump shows ECON and the comm indicator lights.
 ```
