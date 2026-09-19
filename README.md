@@ -406,6 +406,12 @@ licensing compliance:
 - **Lingxiao variable-speed pump instruction manual** — Troubleshooting /
   error-code table (E001–E095, E030, LOF) and priming behavior.
 
+This list may be incomplete. Over the course of the project I also drew on
+various forum posts, datasheets, videos, and other community resources that I
+may not have kept track of or have since forgotten. **Credit is due to all of
+that prior community work**, even where it isn't individually cited here — if
+you recognize your work and want attribution (or removal), please open an issue.
+
 Trademarks (Pentair, IntelliFlo, Lingxiao, Home Assistant, Tasmota) belong to
 their respective owners.
 
