@@ -135,24 +135,29 @@ values differ from genuine Pentair pumps (documented below).
 | Part | Used here | Notes |
 |------|-----------|-------|
 | Pump | **Lingxiao Relaax220-VS** | Pentair-compatible RS485, 9600 8N1 |
-| Microcontroller | **ESP8266 — NodeMCU 1.0 (ESP-12E module)** | Any ESP8266 board works (Wemos D1 mini, etc.) |
-| RS485 adapter | **Auto-direction TTL↔RS485 module** (no DE/RE pin, e.g. MAX3485-based) | Auto flow-control; if your module has DE/RE, tie them enabled or drive from a GPIO |
+| Microcontroller | **Wemos D1 Mini (ESP8266)** — the unit shown is the **Pro** variant with a u.FL external-antenna connector | Any ESP8266 board works; the external antenna helps range at the equipment pad |
+| RS485 adapter | **MAX485 auto-direction (automatic flow-control) TTL↔RS485 module** (uses a 74HC04 for direction, **no DE/RE pin**) | TTL side: GND/RXD/TXD/VCC. RS485 side: **A+ / B-**. Runs at 3.3V from the Wemos |
 
-> If you are using different parts, adjust the pin names and, for a
-> DE/RE-style module, add direction control. This build assumes an
-> **auto-direction** module, which is why the sketch uses plain SoftwareSerial
-> with no direction GPIO.
+> Because the module is **auto-direction**, the sketch uses plain SoftwareSerial
+> with no direction GPIO. If your module instead has DE/RE pins, tie them
+> enabled or drive them from a GPIO.
+
+![Wemos D1 Mini (ESP8266)](docs/wemos-d1-mini.jpg)
+![MAX485 auto-direction RS485 adapter](docs/rs485-adapter.jpg)
 
 ### Wiring
 
 RS485 adapter ↔ ESP8266 (SoftwareSerial, 9600 8N1):
 
-| RS485 module pin | ESP8266 (NodeMCU) |
-|------------------|-------------------|
-| RO (receiver out) | **D6** |
-| DI (driver in)    | **D7** |
+| RS485 module (TTL side) | Wemos D1 Mini |
+|-------------------------|---------------|
+| RXD | **D6** |
+| TXD | **D7** |
 | VCC | **3V3** |
 | GND | **GND** |
+
+The module's RS485 side has **A+** and **B-** terminals that go to the pump
+communication cable.
 
 The Pentair automation bus is **9600 baud, 8N1**.
 
