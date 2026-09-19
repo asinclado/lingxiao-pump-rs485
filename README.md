@@ -13,13 +13,14 @@ this controller builds and decodes Pentair-style automation-bus frames.
 
 ### Project status (current)
 
-This repo reflects what worked on the pump it was developed and tested on. That
-original pump **failed and was replaced**. The replacement is the **same model
-(Lingxiao Relaax220-VS)**, but the sketch is **not currently working on it**,
-and I have not yet had a chance to investigate why (it may be a different
-firmware revision, changed status/mode values, or a wiring/connector/settings
-difference). Treat behavior on the replacement unit as **untested / a known open
-issue** until updated.
+Working and tested on a **Lingxiao Relaax220-VS**. Behavior (status/mode byte
+values, timing) can vary between units and firmware revisions, so treat the
+decoded values here as a reference and verify against your own pump's traffic
+using the built-in log.
+
+> Tip: if commands seem ignored, keep the controller connected and polling
+> (Auto Poll on) and confirm the pump reports **Mode = Remote (0x11)** in the
+> log — the status poll is what establishes/maintains remote control.
 
 ---
 
