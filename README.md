@@ -39,6 +39,20 @@ This matches how a Pentair automation controller takes over a pump: it must
 enable remote control before the pump obeys the bus. Plan your testing with the
 pump stopped and in Manual mode.
 
+### Keep-alive: the pump times out (~2 min) without polling
+
+Once the pump is under external/remote control, it expects to keep hearing from
+the controller. **If it does not receive a status request for roughly 2 minutes,
+it times out and reverts to Manual (local) mode**, dropping remote control.
+
+This is exactly what the **Auto Poll** feature is for: it periodically sends a
+status request (`CMD 0x07`) to keep the pump in remote mode and to refresh the
+live readings. Set the **Auto Poll interval** comfortably under the ~2-minute
+timeout (a few seconds to tens of seconds is typical; the default is a few
+seconds). If you turn Auto Poll off and send nothing for ~2 minutes, expect the
+pump to fall back to Manual mode and ignore commands until you re-enable
+remote / resume polling.
+
 ---
 
 ## Features
