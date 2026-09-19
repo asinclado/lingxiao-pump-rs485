@@ -1,0 +1,16 @@
+# Real credentials - never commit
+LingxiaoPumpRS485/secrets.h
+secrets.h
+
+# Arduino build artifacts
+build/
+*.bin
+*.elf
+*.hex
+*.map
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
