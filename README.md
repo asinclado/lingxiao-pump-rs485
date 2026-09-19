@@ -62,6 +62,8 @@ pump to fall back to Manual mode and ignore commands until polling resumes.
 
 ---
 
+![Pool Pump Dashboard](docs/dashboard.png)
+
 ## Features
 
 - **Live web dashboard** (dark theme): running state, actual RPM, reported
