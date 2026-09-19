@@ -93,13 +93,6 @@ int bufferIndex = 0;
 unsigned long lastByteTime = 0;
 const int BYTE_TIMEOUT = 5;
 
-// ================== LOGGING ==================
-String logBuffer = "";
-const int MAX_LOG_LINES = 25;          // capped to limit RAM use
-const int MAX_LOG_CHARS = 4000;        // hard cap on assembled log text size
-String logLines[MAX_LOG_LINES];
-int logIndex = 0;
-
 // ================== COMMAND DEFINITIONS ==================
 struct CommandDef {
   const char* group;
@@ -157,16 +150,8 @@ const int numCommands = sizeof(commandList) / sizeof(commandList[0]);
 
 // ================== FUNCTION DECLARATIONS ==================
 void handleRoot();
-void handleSendCommand();
-void handleClearLog();
-void handleToggleDebug();
 void handleSetComm();
-void handleTogglePause();
-void handleExportLog();
-void handleLogPage();
 void handleToggleCyclic();
-void handleTogglePollLog();
-void handleToggleLog();
 void handleSetCycle();
 void handleSetRpm();
 void handleQuickStatus();
@@ -267,16 +252,8 @@ void setup() {
   Serial.println("OTA Ready");
 
   server.on("/", handleRoot);
-  server.on("/sendCommand", handleSendCommand);
-  server.on("/clearLog", handleClearLog);
-  server.on("/toggleDebug", handleToggleDebug);
   server.on("/setComm", handleSetComm);
-  server.on("/togglePause", handleTogglePause);
-  server.on("/exportLog", handleExportLog);
-  server.on("/log", handleLogPage);
   server.on("/toggleCyclic", handleToggleCyclic);
-  server.on("/togglePollLog", handleTogglePollLog);
-  server.on("/toggleLog", handleToggleLog);
   server.on("/setCycle", handleSetCycle);
   server.on("/setRpm", handleSetRpm);
   server.on("/quickStatus", handleQuickStatus);
@@ -636,38 +613,7 @@ bool parseHexString(String input, byte* output, int& outputLen, int maxLen) {
 }
 
 // ================== LOGGING ==================
-void addToLog(String message) {
-  if (!logEnabled) return;
-  if (paused) return;
-
-  // Only store into the ring buffer (auto-deletes oldest line as it wraps).
-  // Do NOT rebuild logBuffer on every line - rebuilding a multi-KB String each
-  // call fragments the ESP8266 heap and causes crashes. The full text is
-  // assembled on demand in buildLogText(). Long lines are truncated so one
-  // huge line can't blow the memory budget.
-  if (message.length() > 160) message = message.substring(0, 160) + "...";
-  logLines[logIndex] = message;
-  logIndex = (logIndex + 1) % MAX_LOG_LINES;
-}
-
-// Assemble log text on demand (only when the browser requests /exportLog).
-// Hard-capped at MAX_LOG_CHARS so it can never bloat the page / exhaust heap.
-String buildLogText() {
-  String out = "";
-  out.reserve(MAX_LOG_CHARS + 64);
-  for (int i = 0; i < MAX_LOG_LINES; i++) {
-    int idx = (logIndex + i) % MAX_LOG_LINES;
-    if (logLines[idx].length()) {
-      out += logLines[idx];
-      out += "\n";
-      if ((int)out.length() >= MAX_LOG_CHARS) {   // stop before it grows too big
-        out += "... (log truncated)\n";
-        break;
-      }
-    }
-  }
-  return out;
-}
+void addToLog(String message) { }
 
 String getTimeStamp() {
   time_t now = time(nullptr);
@@ -901,15 +847,7 @@ void handleRoot() {
   html += "<div class='row'>";
   html += "<form action='/toggleCyclic' method='POST'><button class='ghost' type='submit'>" + String(cyclicControl ? "Auto Poll OFF" : "Auto Poll ON") + "</button></form>";
   html += "<form action='/setCycle' method='POST'><span class='small'>Interval</span> <input type='number' name='interval' value='" + String(cycleIntervalMs / 1000) + "' min='1' max='120' step='1' style='width:80px'> <button class='ghost' type='submit'>Set</button></form>";
-  html += "<form action='/toggleLog' method='POST'><button class='ghost' type='submit'>Log " + String(logEnabled ? "OFF" : "ON") + "</button></form>";
-  html += "<form action='/togglePollLog' method='POST'><button class='ghost' type='submit'>Auto Poll Log " + String(logAutoPoll ? "OFF" : "ON") + "</button></form>";
   html += "</div>";
-  html += "</div>";
-
-  // Log + command testing moved to their own lightweight /log page so this
-  // dashboard page stays small (avoids the ESP8266 heap/page crash).
-  html += "<div class='card' style='text-align:center'>";
-  html += "<a href='/log' style='color:#38bdf8;font-weight:700;font-size:15px;text-decoration:none'>Open Log &amp; Command Testing &rarr;</a>";
   html += "</div>";
 
   html += "<div class='footer'>FW: Lingxiao_RS485_Stable_vNext | MQTT topic: pool/pump/state</div>";
@@ -919,46 +857,6 @@ void handleRoot() {
 }
 
 // ================== WEB HANDLERS ==================
-void handleSendCommand() {
-  String command = "";
-
-  if (server.hasArg("customCommand")) {
-    String custom = server.arg("customCommand");
-    custom.trim();
-
-    if (custom.length() > 0) {
-      command = custom;
-    }
-  }
-
-  if (command.length() == 0 && server.hasArg("command")) {
-    command = server.arg("command");
-  }
-
-  command.trim();
-
-  if (command.length() > 0) {
-    byte bytes[80];
-    int byteCount = 0;
-
-    if (parseHexString(command, bytes, byteCount, 80)) {
-      String label = "Custom / Selected Command";
-      if (byteCount >= 9) {
-        label = commandNameFromPacket(bytes[7], bytes[8], &bytes[9]);
-      }
-      sendMessage(bytes, byteCount, label);
-    } else {
-      addToLog("");
-      addToLog("[" + getTimeStamp() + "] ERROR");
-      addToLog("  Invalid hex command");
-    }
-  }
-
-  // AJAX call from the dashboard: return a small 200 (no redirect/reload) so
-  // the Advanced panel and log stay open.
-  server.send(200, "text/plain", "OK");
-}
-
 void handleToggleCyclic() {
   cyclicControl = !cyclicControl;
   lastCycleTime = 0;
@@ -967,23 +865,6 @@ void handleToggleCyclic() {
   addToLog("[" + getTimeStamp() + "] SYSTEM");
   addToLog("  Auto status poll: " + String(cyclicControl ? "ON" : "OFF"));
   addToLog("  Interval: " + String(cycleIntervalMs / 1000) + " seconds");
-
-  server.sendHeader("Location", "/");
-  server.send(302);
-}
-
-void handleToggleLog() {
-  logEnabled = !logEnabled;
-  server.sendHeader("Location", "/");
-  server.send(302);
-}
-
-void handleTogglePollLog() {
-  logAutoPoll = !logAutoPoll;
-
-  addToLog("");
-  addToLog("[" + getTimeStamp() + "] SYSTEM");
-  addToLog("  Auto poll logging: " + String(logAutoPoll ? "ON" : "OFF"));
 
   server.sendHeader("Location", "/");
   server.send(302);
@@ -1072,30 +953,6 @@ void handleStatusJson() {
   server.send(200, "application/json", json);
 }
 
-void handleClearLog() {
-  logBuffer = "";
-
-  for (int i = 0; i < MAX_LOG_LINES; i++) {
-    logLines[i] = "";
-  }
-
-  logIndex = 0;
-
-  server.sendHeader("Location", "/");
-  server.send(302);
-}
-
-void handleToggleDebug() {
-  debugMode = !debugMode;
-
-  addToLog("");
-  addToLog("[" + getTimeStamp() + "] SYSTEM");
-  addToLog("  Debug mode: " + String(debugMode ? "Enabled" : "Disabled"));
-
-  server.sendHeader("Location", "/");
-  server.send(302);
-}
-
 void handleSetComm() {
   int newBaud = server.arg("baud").toInt();
   String newParity = server.arg("parity");
@@ -1124,93 +981,4 @@ void handleSetComm() {
   server.send(302);
 }
 
-void handleTogglePause() {
-  paused = !paused;
 
-  if (!paused) {
-    addToLog("");
-    addToLog("[" + getTimeStamp() + "] SYSTEM");
-    addToLog("  Log resumed");
-  }
-
-  server.sendHeader("Location", "/");
-  server.send(302);
-}
-
-void handleExportLog() {
-  server.sendHeader("Content-Disposition", "attachment; filename=pump_log.txt");
-  server.send(200, "text/plain", buildLogText());
-}
-
-// ================== /log PAGE (separate, lightweight) ==================
-// Streamed with sendContent() so it never builds one big String in RAM.
-// Contains: command testing, the live log (auto-refresh, capped), and log
-// controls (Log on/off, Auto Poll Log on/off, Clear, Export/Save, Pause,
-// Debug) plus a Back button. Keeping this off the dashboard prevents the
-// ESP8266 heap/page crash.
-void handleLogPage() {
-  server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-  server.send(200, "text/html", "");
-
-  server.sendContent(F("<!DOCTYPE html><html><head>"
-    "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-    "<title>Pump Log</title><style>"
-    "body{margin:0;background:#0b1220;color:#e5e7eb;font-family:Arial,Helvetica,sans-serif}"
-    ".wrap{max-width:900px;margin:0 auto;padding:14px}"
-    "h1{font-size:20px;margin:6px 0}h3{margin:10px 0 4px}"
-    ".card{background:#111827;border:1px solid #263244;border-radius:12px;padding:12px;margin-bottom:10px}"
-    "button{border:0;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;"
-      "background:#1f2937;color:#e5e7eb;border:1px solid #263244;cursor:pointer;margin:3px}"
-    ".blue{background:#38bdf8;color:#062233}"
-    "select,input{background:#0b1220;color:#e5e7eb;border:1px solid #263244;border-radius:8px;padding:8px;width:100%}"
-    "textarea{width:100%;height:300px;background:#020617;color:#0f0;border:1px solid #263244;"
-      "border-radius:10px;padding:8px;font-family:monospace;font-size:11px;white-space:pre}"
-    ".row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}"
-    "a{color:#38bdf8;text-decoration:none;font-weight:700}"
-    "</style></head><body><div class='wrap'>"));
-
-  server.sendContent(F("<div class='row' style='justify-content:space-between'>"
-    "<h1>Pump Log &amp; Command Testing</h1><a href='/'>&larr; Back to Dashboard</a></div>"));
-
-  // ---- Command testing ----
-  server.sendContent(F("<div class='card'><h3>Send Command</h3>"
-    "<select id='cmdSel'>"));
-  for (int i = 0; i < numCommands; i++) {
-    String opt = "<option value='" + buildCommandHex(commandList[i]) + "'>"
-               + String(commandList[i].group) + " - " + String(commandList[i].name)
-               + " : " + buildCommandHex(commandList[i]) + "</option>";
-    server.sendContent(opt);
-  }
-  server.sendContent(F("</select><br>"
-    "<button class='blue' onclick='sendCmd(document.getElementById(\"cmdSel\").value)'>Send Selected</button>"
-    "<br><div style='font-size:12px;color:#94a3b8;margin-top:6px'>Custom full packet hex:</div>"
-    "<input id='customCmd' placeholder='FF 00 FF A5 ...'><br>"
-    "<button class='blue' onclick='sendCmd(document.getElementById(\"customCmd\").value)'>Send Custom</button>"
-    "</div>"));
-
-  // ---- Log controls ----
-  server.sendContent(F("<div class='card'><h3>Log</h3><div class='row'>"));
-  server.sendContent("<button onclick=\"go('/toggleLog')\">Log " + String(logEnabled ? "OFF" : "ON") + "</button>");
-  server.sendContent("<button onclick=\"go('/togglePollLog')\">Auto Poll Log " + String(logAutoPoll ? "OFF" : "ON") + "</button>");
-  server.sendContent("<button onclick=\"go('/togglePause')\">" + String(paused ? "Resume" : "Pause") + "</button>");
-  server.sendContent("<button onclick=\"go('/toggleDebug')\">Debug " + String(debugMode ? "OFF" : "ON") + "</button>");
-  server.sendContent(F("<button onclick=\"go('/clearLog')\">Clear</button>"
-    "<button onclick=\"location.href='/exportLog'\">Export / Save</button>"
-    "</div>"));
-
-  // ---- Log view (filled by fetch, not embedded, so this page stays small) ----
-  server.sendContent(F("<textarea readonly id='logs'></textarea></div>"));
-
-  // ---- Scripts ----
-  server.sendContent(F("<script>"
-    "function refreshLogs(){fetch('/exportLog').then(r=>r.text()).then(t=>{document.getElementById('logs').value=t;});}"
-    "function sendCmd(hex){if(!hex)return;fetch('/sendCommand',{method:'POST',"
-      "headers:{'Content-Type':'application/x-www-form-urlencoded'},"
-      "body:'command='+encodeURIComponent(hex)}).then(()=>setTimeout(refreshLogs,250));}"
-    // go(): fire a control POST without leaving the page, then refresh
-    "function go(u){fetch(u,{method:'POST'}).then(()=>setTimeout(function(){location.reload();},200));}"
-    "refreshLogs();setInterval(refreshLogs,3000);"
-    "</script></body></html>"));
-
-  server.sendContent("");   // end chunked response
-}
