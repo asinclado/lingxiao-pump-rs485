@@ -149,15 +149,15 @@ values differ from genuine Pentair pumps (documented below).
 
 RS485 adapter ↔ ESP8266 (SoftwareSerial, 9600 8N1):
 
-| RS485 module (TTL side) | Wemos D1 Mini |
-|-------------------------|---------------|
-| TXD | **D7** |
-| RXD | **D6** |
-| VCC | **3V3** |
-| GND | **GND** |
+| Wemos D1 Mini | RS485 module (TTL side) |
+|---------------|-------------------------|
+| **D6** | RXD |
+| **D7** | TXD |
+| **3V3** | VCC |
+| **GND** | GND |
 
-(As wired on this module — label to label. The sketch's
-`SoftwareSerial(D6, D7)` makes D6 = RX and D7 = TX.)
+(Per the sketch: `SoftwareSerial rs485Serial(D6, D7)` with `RO -> D6`,
+`DI -> D7`. So D6 -> module RXD and D7 -> module TXD.)
 
 The module's RS485 side has **A+** and **B-** terminals that go to the pump
 communication cable.
@@ -236,8 +236,8 @@ Notes:
         |                     |             |  TTL side     RS485 side |              |  M16 4-pin port      |
         |                 3V3 +------------>+ VCC                      |              |  (male, on pump)    |
         |                 GND +------------>+ GND                  A+ <+---YELLOW---->+ Pin 1: RS485 A      |
-        |    D7           ----+-------------+ TXD                  B- <+---GREEN----->+ Pin 2: RS485 B      |
-        |    D6           ----+-------------+ RXD                     |              |                     |
+        |    D6           ----+-------------+ RXD                  B- <+---GREEN----->+ Pin 2: RS485 B      |
+        |    D7           ----+-------------+ TXD                     |              |                     |
         |                     |             |                        |              +---------------------+
         |    5V  <------------+---------------------RED----------------------------->+ Pin 4: +5V (pump)   |
         |    GND <------------+---------------------BLACK--------------------------->+ Pin 3: GND          |
@@ -246,10 +246,8 @@ Notes:
   Boards: Wemos D1 Mini (ESP8266, external-antenna "Pro" variant shown) +
           MAX485 auto-direction TTL<->RS485 module (labels: GND RXD TXD VCC / A+ B-).
 
-  Module TTL side -> Wemos (wire label-to-label on this module):
-      VCC=3V3, GND=GND,  module TXD -> D7,  module RXD -> D6.
-      (Sketch uses SoftwareSerial(D6, D7): D6=RX, D7=TX. This module's TTL
-       labels are oriented so straight, label-matched wiring works.)
+  Module TTL side -> Wemos:  VCC=3V3, GND=GND,  D6 -> module RXD,  D7 -> module TXD.
+      (Per the sketch: SoftwareSerial(D6, D7), RO->D6, DI->D7.)
   Module RS485 side -> pump:  A+ = Yellow (Pin 1 / A),  B- = Green (Pin 2 / B).
   Power/ground come straight from the pump's M16 port:  Red = +5V (Pin 4),  Black = GND (Pin 3).
 
