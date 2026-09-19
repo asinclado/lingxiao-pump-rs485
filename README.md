@@ -157,7 +157,8 @@ The Pentair automation bus is **9600 baud, 8N1**.
 ### Pump communication port (Lingxiao RS485 signal cable)
 
 The pump's watertight **Communication Port** is an **M16 4-pin waterproof
-connector**. Confirmed pinout:
+connector (male on the pump)** — so you need a **female M16 4-pin** mating
+cable/connector. Confirmed pinout:
 
 | M16 pin | Signal | Cable wire | Connect to RS485 module |
 |---------|--------|------------|-------------------------|
