@@ -1,7 +1,7 @@
-# Lingxiao Relaax220-VS Pool Pump — RS485 Controller (ESP8266)
+# Lingxiao SFP220-VS Pool Pump — RS485 Controller (ESP8266)
 
 A WiFi web dashboard, Home Assistant / MQTT bridge, and RS485 sniffer for a
-**Lingxiao Relaax220-VS** variable-speed pool pump, running on an ESP8266.
+**Lingxiao SFP220-VS** variable-speed pool pump, running on an ESP8266.
 The pump speaks a **Pentair / IntelliFlo–compatible** protocol over RS485, so
 this controller builds and decodes Pentair-style automation-bus frames.
 
@@ -13,7 +13,7 @@ this controller builds and decodes Pentair-style automation-bus frames.
 
 ### Project status (current)
 
-Working and tested on a **Lingxiao Relaax220-VS**. Behavior (status/mode byte
+Working and tested on a **Lingxiao SFP220-VS**. Behavior (status/mode byte
 values, timing) can vary between units and firmware revisions, so treat the
 decoded values here as a reference and verify against your own pump's traffic
 using the built-in log.
@@ -127,7 +127,7 @@ the device appears as a **network port** (by its device name) once it's running.
 ## Hardware
 
 **Pump this project is built for and tested on:**
-**Lingxiao Relaax220-VS** — variable-speed, self-priming in-ground pool pump
+**Lingxiao SFP220-VS** — variable-speed, self-priming in-ground pool pump
 (115 / 208–230 V, ENERGY STAR certified). It exposes a **Pentair / IntelliFlo–
 compatible RS485** automation bus at **9600 baud, 8N1**. It is *compatible with*
 the Pentair protocol but runs Lingxiao's own firmware, so some status/mode enum
@@ -135,7 +135,7 @@ values differ from genuine Pentair pumps (documented below).
 
 | Part | Used here | Notes |
 |------|-----------|-------|
-| Pump | **Lingxiao Relaax220-VS** | Pentair-compatible RS485, 9600 8N1 |
+| Pump | **Lingxiao SFP220-VS** | Pentair-compatible RS485, 9600 8N1 |
 | Microcontroller | **Wemos D1 Mini (ESP8266)** — the unit shown is the **Pro** variant with a u.FL external-antenna connector | Any ESP8266 board works; the external antenna helps range at the equipment pad |
 | RS485 adapter | **MAX485 auto-direction (automatic flow-control) TTL↔RS485 module** (uses a 74HC04 for direction, **no DE/RE pin**) | TTL side: GND/RXD/TXD/VCC. RS485 side: **A+ / B-**. Runs at 3.3V from the Wemos |
 
@@ -232,7 +232,7 @@ Notes:
 ### Connection diagram
 
 ```
-        Wemos D1 Mini (ESP8266)             MAX485 auto-direction module              Lingxiao Relaax220-VS
+        Wemos D1 Mini (ESP8266)             MAX485 auto-direction module              Lingxiao SFP220-VS
         +---------------------+             +--------------------------+              +---------------------+
         |                     |             |  TTL side     RS485 side |              |  M16 4-pin port      |
         |                 3V3 +------------>+ VCC                      |              |  (male, on pump)    |
@@ -321,9 +321,9 @@ confirmed/corrected against live systems — see Sources):
 ### Note: the Lingxiao pump differs from standard Pentair values
 
 This is a Pentair-**compatible** pump, not a real Pentair, so some enum values
-differ from the tables above. Values observed on this Relaax220-VS:
+differ from the tables above. Values observed on this SFP220-VS:
 
-| Byte | Observed on Relaax220-VS |
+| Byte | Observed on SFP220-VS |
 |------|--------------------------|
 | Mode [1] | `0x00` = Local, `0x11` = Remote |
 | State [2] | `0x01` = Normal Operation, `0x03` = Priming, `0x07` = Alarm, `0xFF` = Stopped |
@@ -350,7 +350,7 @@ protocol — a faulted pump is cleared by removing the cause or power-cycling
 
 ---
 
-## Lingxiao Relaax220-VS error / fault codes
+## Lingxiao SFP220-VS error / fault codes
 
 From the Lingxiao variable-speed pump instruction manual (Troubleshooting
 section). **E002 auto-recovers; all other codes stop the controller and require
