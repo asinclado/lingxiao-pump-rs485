@@ -149,12 +149,12 @@ values differ from genuine Pentair pumps (documented below).
 
 RS485 adapter ↔ ESP8266 (SoftwareSerial, 9600 8N1):
 
-| RS485 module (TTL side) | Wemos D1 Mini |
-|-------------------------|---------------|
-| RXD | **D6** |
-| TXD | **D7** |
-| VCC | **3V3** |
-| GND | **GND** |
+| RS485 module (TTL side) | Wemos D1 Mini | Note |
+|-------------------------|---------------|------|
+| RXD | **D7** (ESP TX) | TX/RX cross over |
+| TXD | **D6** (ESP RX) | TX/RX cross over |
+| VCC | **3V3** | |
+| GND | **GND** | |
 
 The module's RS485 side has **A+** and **B-** terminals that go to the pump
 communication cable.
@@ -233,8 +233,8 @@ Notes:
         |                     |             |  TTL side     RS485 side |              |  M16 4-pin port      |
         |                 3V3 +------------>+ VCC                      |              |  (male, on pump)    |
         |                 GND +------------>+ GND                  A+ <+---YELLOW---->+ Pin 1: RS485 A      |
-        |    D7 (TX)      ----+------------>+ TXD                  B- <+---GREEN----->+ Pin 2: RS485 B      |
-        |    D6 (RX)      <---+-------------+ RXD                     |              |                     |
+        |    D7 (TX)      ----+------------>+ RXD                  B- <+---GREEN----->+ Pin 2: RS485 B      |
+        |    D6 (RX)      <---+-------------+ TXD                     |              |                     |
         |                     |             |                        |              +---------------------+
         |    5V  <------------+---------------------RED----------------------------->+ Pin 4: +5V (pump)   |
         |    GND <------------+---------------------BLACK--------------------------->+ Pin 3: GND          |
@@ -243,7 +243,8 @@ Notes:
   Boards: Wemos D1 Mini (ESP8266, external-antenna "Pro" variant shown) +
           MAX485 auto-direction TTL<->RS485 module (labels: GND RXD TXD VCC / A+ B-).
 
-  Module TTL side -> Wemos:   VCC=3V3, GND=GND, TXD->D7, RXD->D6.
+  Module TTL side -> Wemos (TX/RX cross over):  VCC=3V3, GND=GND,
+      D7 (ESP TX) -> module RXD,  D6 (ESP RX) -> module TXD.
   Module RS485 side -> pump:  A+ = Yellow (Pin 1 / A),  B- = Green (Pin 2 / B).
   Power/ground come straight from the pump's M16 port:  Red = +5V (Pin 4),  Black = GND (Pin 3).
 
