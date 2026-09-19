@@ -387,9 +387,10 @@ a power cycle to restart.**
   `setRpm`, `reported_power`, `mode`, `state`, `last`, `auto_poll`.
 - **Commands (subscribed):** `pool/pump/cmd/start`, `/stop`, `/status`,
   `/remote`, `/rpm`.
-> **Note on reported power:** the pump's reported watts is **not accurate** — in
-> my experience it usually reads **higher** than actual. For real power I use a
-> separate whole-home power monitor. Treat the pump's value as a rough estimate.
+> **Note on reported power:** accuracy of the pump's reported watts **varies by
+> unit/firmware.** My current pump reports fairly accurate power, while an
+> earlier unit read noticeably **higher** than actual. If in doubt, compare
+> against a separate power monitor.
 
 ### Home Assistant auto-discovery
 
