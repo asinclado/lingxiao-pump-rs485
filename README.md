@@ -366,7 +366,12 @@ a power cycle to restart.**
   `setRpm`, `reported_power`, `mode`, `state`, `last`, `auto_poll`.
 - **Commands (subscribed):** `pool/pump/cmd/start`, `/stop`, `/status`,
   `/remote`, `/rpm`.
-- **Discovery:** published under `homeassistant/...` for auto-config.
+### Home Assistant auto-discovery
+
+The firmware publishes MQTT **discovery** configs under `homeassistant/...`, so
+Home Assistant creates the pump entities **automatically — no YAML needed**.
+With the HA MQTT integration set up, you get RPM, power, a running sensor,
+Start/Stop/Status/Remote buttons, and an RPM setpoint, all on their own.
 
 ---
 
