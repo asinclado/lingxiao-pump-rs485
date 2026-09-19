@@ -609,16 +609,23 @@ void addToLog(String message) {
   if (!logEnabled) return;
   if (paused) return;
 
+  // Only store into the ring buffer. Do NOT rebuild logBuffer on every line -
+  // rebuilding a multi-KB String each call fragments the ESP8266 heap and
+  // causes crashes/reboots, especially with auto-poll running. The full text
+  // is assembled on demand in buildLogText() when the browser fetches it.
   logLines[logIndex] = message;
   logIndex = (logIndex + 1) % MAX_LOG_LINES;
+}
 
-  logBuffer = "";
+// Assemble log text on demand (only when the browser requests /exportLog).
+String buildLogText() {
+  String out = "";
+  out.reserve(2048);
   for (int i = 0; i < MAX_LOG_LINES; i++) {
     int idx = (logIndex + i) % MAX_LOG_LINES;
-    if (logLines[idx] != "") {
-      logBuffer += logLines[idx] + "\n";
-    }
+    if (logLines[idx].length()) out += logLines[idx] + "\n";
   }
+  return out;
 }
 
 String getTimeStamp() {
@@ -810,6 +817,8 @@ void handleRoot() {
   html += "});}";
   html += "function refreshLogs(){let box=document.getElementById('logs');if(box){fetch('/exportLog').then(r=>r.text()).then(t=>box.value=t);}}";
   html += "setInterval(refreshStatus,1000);setInterval(refreshLogs,3000);";
+  // Restore the Advanced (log) panel open state so it does not auto-close.
+  html += "window.addEventListener('load',function(){var d=document.getElementById('adv');if(d&&localStorage.getItem('advOpen')==='1')d.open=true;});";
   html += "</script>";
 
   html += "</head><body><div class='wrap'>";
@@ -859,7 +868,7 @@ void handleRoot() {
   html += "</div>";
   html += "</div>";
 
-  html += "<details>";
+  html += "<details id='adv' ontoggle='localStorage.setItem(\"advOpen\", this.open?\"1\":\"0\")'>";
   html += "<summary>Advanced: command testing and log</summary>";
   html += "<div class='card'>";
   html += "<h3>Send Command</h3>";
@@ -878,7 +887,7 @@ void handleRoot() {
   html += "<button class='ghost' type='submit'>Send Custom</button>";
   html += "</form>";
   html += "<h3>Log</h3>";
-  html += "<textarea readonly id='logs'>" + htmlEscape(logBuffer) + "</textarea>";
+  html += "<textarea readonly id='logs'>" + htmlEscape(buildLogText()) + "</textarea>";
   html += "<div class='row' style='margin-top:8px'>";
   html += "<form action='/clearLog' method='POST'><button class='ghost' type='submit'>Clear Log</button></form>";
   html += "<form action='/exportLog' method='GET'><button class='ghost' type='submit'>Export Log</button></form>";
@@ -1113,5 +1122,5 @@ void handleTogglePause() {
 
 void handleExportLog() {
   server.sendHeader("Content-Disposition", "attachment; filename=pump_log.txt");
-  server.send(200, "text/plain", logBuffer);
+  server.send(200, "text/plain", buildLogText());
 }
