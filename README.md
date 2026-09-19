@@ -453,6 +453,10 @@ their respective owners.
   to electrical and water systems governed by codes and regulations in your
   area; consult a **licensed electrician / qualified professional** and follow
   the manufacturer's manual and all applicable codes.
+- **Any damage to your pump (or any other equipment) from attempting any of
+  this is entirely at your own risk.** Interfacing with the pump's
+  communication port, sending commands, or mis-wiring can damage or destroy the
+  pump's control board and is not covered by any warranty.
 - **You assume all responsibility and risk.** By using any part of this project
   you agree that the author(s) and contributors are **not liable** for any
   damage, loss, injury, or other consequence arising from its use, misuse, or
