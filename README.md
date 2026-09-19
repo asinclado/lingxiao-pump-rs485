@@ -165,16 +165,20 @@ cable/connector. Confirmed pinout:
 | M16 pin | Signal | Cable wire | Connect to RS485 module |
 |---------|--------|------------|-------------------------|
 | **1** | RS485 A | Yellow | A |
-| **2** | RS485 B | Red    | B |
+| **2** | RS485 B | Green  | B |
 | **3** | GND | Black  | GND |
-| **4** | **+5V (from pump)** | — | (optional: power the ESP) |
+| **4** | **+5V (from pump)** | Red | (optional: power the ESP) |
+
+Wire colors follow the conventional labeling: **Red = 5V, Black = GND,
+Yellow = A, Green = B.**
 
 The port is on the side of the drive housing, labeled **"Communication Port"**
 (M16 male, 4 pins around a center key).
 
 ![Pump Communication Port location](docs/pump-communication-port.png)
 
-The mating cable connector and its pins (Yellow / Red / Black populated):
+The mating cable connector and its pins (Yellow = A, Green = B, Red = 5V,
+Black = GND):
 
 ![Connector face](docs/connector-face.jpg)
 ![Connector pins](docs/connector-pins.jpg)
@@ -187,8 +191,8 @@ epoxy / potting compound** for a compact, weatherproof module that just plugs
 into the pump's communication port.
 
 Notes on colors and power:
-- The manual's diagram labels the B line "green"; on the physical cable that
-  conductor is **red** (colors vary by batch — verify with a multimeter).
+- Colors match convention: **Yellow = A, Green = B, Red = 5V, Black = GND.**
+  Still verify with a multimeter before connecting (colors can vary by batch).
 - **Pin 4 supplies 5V from the pump — this is where power is taken for the
   Wemos D1.** Feed pin 4 into the Wemos D1 **`5V`** pin (the USB/VBUS rail, NOT
   `3V3`); the board's onboard regulator produces 3.3V for the ESP. Then the
@@ -227,19 +231,19 @@ Notes:
         |                             |            |                   B  <-+------------>+ B (Data -)          |
         |     D7 (DI / TX out)  ------+----------->+ DI (driver in)         |             | M16 4-pin port      |
         |     D6 (RO / RX in)   <-----+------------+ RO (receiver out)  A  <+--YELLOW---->+ Pin 1: RS485 A      |
-        |                             |            |                    B  <+--RED------->+ Pin 2: RS485 B      |
+        |                             |            |                    B  <+--GREEN----->+ Pin 2: RS485 B      |
         |     GND               ------+------------+ GND               GND <+--BLACK----->+ Pin 3: GND          |
-        |     5V/VIN (optional) <-----+----------------------------------------5V---------+ Pin 4: +5V (pump)   |
+        |     5V/VIN (optional) <-----+----------------------------------------RED--------+ Pin 4: +5V (pump)   |
         +-----------------------------+            +------------------------+             |  (9600 baud, 8N1)   |
                                                                                           +---------------------+
 
   Pump connector: M16 4-pin waterproof.
-  Pinout:  Pin 1 = RS485 A (Yellow),  Pin 2 = RS485 B (Red),  Pin 3 = GND (Black),  Pin 4 = +5V from pump.
+  Pinout:  Pin 1 = RS485 A (Yellow),  Pin 2 = RS485 B (Green),  Pin 3 = GND (Black),  Pin 4 = +5V (Red).
   Notes:
    - Auto-direction module: no DE/RE wiring needed.
    - Common ground across ESP8266, RS485 module, and pump (Pin 3 / Black).
    - Optional: power the ESP8266 from Pin 4 (+5V) instead of USB (verify voltage/current first).
-   - Keep the A/B pair short/twisted. If no comms, swap A/B (Yellow/Red).
+   - Keep the A/B pair short/twisted. If no comms, swap A/B (Yellow/Green).
    - On a good link the pump shows ECON and the comm indicator lights.
 ```
 
