@@ -13,11 +13,13 @@ this controller builds and decodes Pentair-style automation-bus frames.
 
 ### Project status (current)
 
-This repo reflects what worked on the pump it was developed and tested on. It is
-**not currently working on my newer pump unit**, and I have not yet had a chance
-to investigate why (it may be a different firmware revision, changed status/mode
-values, a wiring/connector difference, or a settings issue). Treat behavior on
-other/newer units as **untested / a known open issue** until updated.
+This repo reflects what worked on the pump it was developed and tested on. That
+original pump **failed and was replaced**. The replacement is the **same model
+(Lingxiao Relaax220-VS)**, but the sketch is **not currently working on it**,
+and I have not yet had a chance to investigate why (it may be a different
+firmware revision, changed status/mode values, or a wiring/connector/settings
+difference). Treat behavior on the replacement unit as **untested / a known open
+issue** until updated.
 
 ---
 
