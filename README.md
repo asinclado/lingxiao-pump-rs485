@@ -39,19 +39,29 @@ This matches how a Pentair automation controller takes over a pump: it must
 enable remote control before the pump obeys the bus. Plan your testing with the
 pump stopped and in Manual mode.
 
+### What actually puts the pump in remote mode (the status request)
+
+On this pump, **the status request (`CMD 0x07`) is what establishes and
+maintains remote control** — receiving polls is the "a controller is present"
+signal, and the pump enters remote (**ECON**) mode from the polling itself.
+
+The separate **Remote Enable** command (`0x04 0xFF`) **did not appear to be
+required** in testing — the status polling alone was enough to take/keep remote
+control. It is left in the firmware as an option, but on this pump it seems
+redundant. (Observed behavior; may differ on other units/firmware.)
+
 ### Keep-alive: the pump times out (~2 min) without polling
 
-Once the pump is under external/remote control, it expects to keep hearing from
-the controller. **If it does not receive a status request for roughly 2 minutes,
-it times out and reverts to Manual (local) mode**, dropping remote control.
+Because polling is the handshake, the pump expects to keep hearing status
+requests. **If it does not receive a status request for roughly 2 minutes, it
+times out and reverts to Manual (local) mode**, dropping remote control.
 
 This is exactly what the **Auto Poll** feature is for: it periodically sends a
 status request (`CMD 0x07`) to keep the pump in remote mode and to refresh the
 live readings. Set the **Auto Poll interval** comfortably under the ~2-minute
 timeout (a few seconds to tens of seconds is typical; the default is a few
 seconds). If you turn Auto Poll off and send nothing for ~2 minutes, expect the
-pump to fall back to Manual mode and ignore commands until you re-enable
-remote / resume polling.
+pump to fall back to Manual mode and ignore commands until polling resumes.
 
 ---
 
@@ -60,7 +70,9 @@ remote / resume polling.
 - **Live web dashboard** (dark theme): running state, actual RPM, reported
   power (watts), pump Mode and State, MQTT status, auto-poll counter.
 - **RPM slider** — sets pump speed (sends the speed command on release).
-- **Quick controls** — Start, Stop, Remote Enable, Status request.
+- **Quick controls** — Start, Stop, Status request, and Remote Enable (note:
+  the status request itself is what actually takes/keeps remote control — see
+  below).
 - **Auto status polling** with adjustable interval.
 - **Home Assistant MQTT discovery** — pump RPM, power, running binary sensor,
   Start/Stop/Status/Remote buttons, and an RPM setpoint number entity appear
@@ -69,6 +81,44 @@ remote / resume polling.
   hex packet, and view / export a decoded RX/TX log.
 - **OTA updates** over WiFi.
 - **First-boot friendly** — credentials live in `secrets.h`.
+
+---
+
+## How this was built (reverse-engineering workflow)
+
+This pump ships with no public protocol docs, so the dashboard doubles as a
+**protocol analysis tool**. The whole command set here was worked out on the
+bench using three features that are still in the sketch:
+
+- **Live RX/TX log (Advanced panel).** Every frame sent and received is shown
+  as raw hex *and* decoded (header, dest/src, command, payload, checksum OK/BAD,
+  and a human-readable interpretation). Watching this log while the pump ran —
+  and while a real automation controller talked to it — is how the frame format,
+  addresses (pump `0x60`, controller `0x10`), and the status-packet byte layout
+  were mapped. You can **Export Log** to save a capture for later analysis.
+- **Command testing box.** The Advanced panel has a dropdown of known-good
+  commands *and* a **custom raw-hex** field. This let us try candidate packets
+  one at a time and immediately see, in the log, whether the pump ACKed or
+  responded — that's how commands were promoted from "experimental" to
+  "verified." (Checksums are computed for you when building packets.)
+- **Auto Poll + status decoding.** Continuously polling status and decoding the
+  15-byte response is what revealed the run/mode/state bytes, watts, RPM, and
+  the clock fields — and, by watching which byte changed under a given
+  condition, which byte means what.
+
+> Tip for further mapping: the surest way to decode an unknown field is to
+> change one thing on the pump and watch exactly which status byte moves in the
+> log.
+
+### OTA — no more unplugging to reflash
+
+The firmware supports **Arduino OTA (over-the-air) updates**. Once the board is
+on your WiFi, you can upload new firmware over the network instead of carrying a
+USB cable to the pump every time. This was essential during reverse-engineering:
+the controller could stay wired to the pump out at the equipment pad while new
+builds were pushed from the workbench, so each "try a command / tweak the
+decoder / reflash" cycle took seconds and no physical access. In the Arduino IDE
+the device appears as a **network port** (by its device name) once it's running.
 
 ---
 
