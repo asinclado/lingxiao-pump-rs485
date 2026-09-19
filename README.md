@@ -13,14 +13,11 @@ this controller builds and decodes Pentair-style automation-bus frames.
 
 ### Project status (current)
 
-The original pump this was developed and tested on **failed recently — my own
-fault, I accidentally let it run dry**. I have since installed a **new pump**,
-and the sketch is **not currently working on the new unit**. I have not yet had
-a chance to investigate why (it may be a different firmware revision, changed
-status/mode values, a wiring/connector difference, or a settings issue on the
-new pump). This repo reflects what worked on the original pump; treat the new-
-pump behavior as **untested / a known open issue** until updated. This is also a
-good reminder from the error-code section: **do not let the pump run dry.**
+This repo reflects what worked on the pump it was developed and tested on. It is
+**not currently working on my newer pump unit**, and I have not yet had a chance
+to investigate why (it may be a different firmware revision, changed status/mode
+values, a wiring/connector difference, or a settings issue). Treat behavior on
+other/newer units as **untested / a known open issue** until updated.
 
 ---
 
